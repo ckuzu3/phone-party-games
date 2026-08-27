@@ -20,6 +20,10 @@ import { CupPongGame } from "./games/cuppong.js";
 import { GolfGame } from "./games/golf.js";
 import { BilliardsGame } from "./games/billiards.js";
 import { TanksGame } from "./games/tanks.js";
+import { AirHockeyGame } from "./games/airhockey.js";
+import { BaseballGame } from "./games/baseball.js";
+import { LightCyclesGame } from "./games/lightcycles.js";
+import { QuizGame } from "./games/quiz.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -39,6 +43,10 @@ const GAMES = {
   golf: GolfGame,
   billiards: BilliardsGame,
   tanks: TanksGame,
+  airhockey: AirHockeyGame,
+  baseball: BaseballGame,
+  lightcycles: LightCyclesGame,
+  quiz: QuizGame,
 };
 /*
  * The running order is read off the menu markup at start-up rather than kept

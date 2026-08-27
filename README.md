@@ -1,9 +1,10 @@
 # Wii-Style Sports — your phone is the controller
 
-Fifteen games that run in a browser on your PC, with your phone acting as the
+Nineteen games that run in a browser on your PC, with your phone acting as the
 controller over your home WiFi: tennis, bowling, boxing, racing, basketball,
-golf, darts, cup pong, billiards, duck shooting, tank duel, four in a row,
-battleships, chess and Dame.
+baseball, golf, darts, cup pong, billiards, air hockey, duck shooting, tank
+duel, light cycles, four in a row, battleships, chess, Dame and a general
+knowledge quiz.
 
 No installation, no accounts, nothing leaves your network. The server is a
 single Python file using only the standard library, and the game is plain
@@ -212,6 +213,31 @@ power and let go to fire**. Wind changes every turn and is shown in the middle
 of the health bars. Shells dig craters, so the ground you are standing on will
 not stay where it was.
 
+### Air Hockey
+Tilt to slide your mallet around your own half — forwards and back as well as
+side to side. There is no button: pace comes from how fast the mallet is
+actually moving when it meets the puck, so wind up rather than poke at it.
+First to seven.
+
+### Baseball
+A pitch comes in; swing as it reaches the plate. Timing decides everything —
+swing early to pull it, late to push it the other way, and lean as you swing to
+set the launch angle. Three outs an innings, three innings each. There are
+fielders standing where you would expect them, so placing the ball in a gap
+matters as much as hitting it hard.
+
+### Light Cycles
+**Up to four players.** Everyone rides forward all the time leaving a solid
+wall behind them. Tilt left or right to turn a quarter turn — let the phone
+come back to centre before turning again. Last one riding wins. With fewer than
+four phones the computer fills the empty seats.
+
+### Quiz
+**Up to four players.** General knowledge, ten questions a game. The question
+and the four answers appear on the big screen; your phone shows just A, B, C
+and D. Everyone answers at once and the quickest correct answer scores most, so
+there is a reason to commit rather than wait and see.
+
 ---
 
 ## No phone? Keyboard controls
@@ -300,6 +326,8 @@ the point of view of whoever is holding that phone.
 | Dame | Player 2 plays the dark pieces. The board rotates the same way. |
 | Basketball, Golf, Darts, Cup Pong, Billiards | Players alternate on one shared screen, each with their own score. |
 | Tank Duel | Player 2 takes the second tank instead of the computer. |
+| Air Hockey, Baseball | Player 2 takes the other end. |
+| Light Cycles, Quiz | Up to **four** players at once, each on their own phone. |
 | Bowling | Still one bowler. A second phone is ignored so it cannot throw your ball. |
 
 Duck Shooting, Four in a Row and Battleships share one screen rather than

@@ -93,6 +93,91 @@
   .bsFleet .pips i.sunk { color: #ff6b6b; opacity: .5; text-decoration: line-through; }
   .bsFleet .left { font-size: 19px; font-weight: 800; }
 
+  /* light cycles */
+  .cycleHud { display: flex; gap: 10px; justify-content: center; }
+  .cycleCard {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(8,14,28,.62); border: 1px solid var(--c);
+    border-radius: 12px; padding: 6px 13px; font-size: 13px;
+  }
+  .cycleCard i { width: 13px; height: 13px; border-radius: 3px; background: var(--c); }
+  .cycleCard b { font-weight: 800; opacity: .8; }
+  .cycleCard.out { opacity: .38; }
+  .cycleCard.out i { background: #555; }
+
+  .bases i {
+    font-style: normal; display: inline-block; width: 15px; height: 15px;
+    line-height: 15px; text-align: center; font-size: 10px; margin: 0 1px;
+    border: 1px solid #ffffff44; border-radius: 3px; transform: rotate(45deg);
+  }
+  .bases i.on { background: #ffd166; color: #3a2a00; border-color: #ffd166; }
+
+  /* quiz */
+  .quizHud { display: flex; gap: 10px; justify-content: center; }
+  .quizScore {
+    display: flex; align-items: center; gap: 9px;
+    background: rgba(8,14,28,.62); border: 1px solid var(--c);
+    border-radius: 12px; padding: 5px 14px;
+  }
+  .quizScore .who { font-size: 12px; font-weight: 800; color: var(--c); letter-spacing: 1px; }
+  .quizScore .pts { font-size: 22px; font-weight: 900; }
+
+  .quizPanel {
+    position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
+    width: min(1080px, 88vw); text-align: center;
+  }
+  .quizPanel .qCount {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    opacity: .6; margin-bottom: 10px;
+  }
+  .quizPanel .qText {
+    font-size: 38px; font-weight: 800; line-height: 1.25; margin-bottom: 18px;
+    text-shadow: 0 4px 20px rgba(0,0,0,.8);
+  }
+  .quizPanel .qTimer {
+    height: 7px; border-radius: 99px; background: rgba(255,255,255,.12);
+    overflow: hidden; margin: 0 auto 18px; width: 62%;
+  }
+  .quizPanel .qTimer i {
+    display: block; height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, #59e39b, #ffd166, #ff6b6b);
+    transition: width .12s linear;
+  }
+  .quizPanel .qOpts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;
+  }
+  .quizPanel .qOpt {
+    display: flex; align-items: center; gap: 13px;
+    background: rgba(8,14,28,.72); border: 2px solid #ffffff26;
+    border-radius: 15px; padding: 14px 18px; font-size: 21px;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .quizPanel .qOpt b {
+    font-size: 20px; width: 34px; height: 34px; flex: none; border-radius: 9px;
+    background: #ffffff1c; display: grid; place-items: center;
+  }
+  .quizPanel .qOpt span { flex: 1; }
+  .quizPanel .qOpt em {
+    font-style: normal; display: flex; gap: 4px;
+  }
+  .quizPanel .qOpt em i {
+    font-style: normal; font-size: 11px; font-weight: 800; color: #06122c;
+    background: var(--c); border-radius: 99px; padding: 3px 7px;
+  }
+  .quizPanel .qOpt.right { border-color: #59e39b; background: rgba(30,110,70,.72); }
+  .quizPanel .qOpt.wrong { opacity: .45; }
+  .quizPanel .qWait { font-size: 30px; font-weight: 800; opacity: .85; }
+  .quizPanel .qFinal h2 { font-size: 26px; margin: 0 0 14px; letter-spacing: 1px; }
+  .quizPanel .qRow {
+    display: flex; align-items: center; gap: 14px; font-size: 22px;
+    background: rgba(8,14,28,.7); border-left: 5px solid var(--c);
+    border-radius: 11px; padding: 10px 18px; margin-bottom: 8px; text-align: left;
+  }
+  .quizPanel .qRow .pos { font-weight: 900; opacity: .55; width: 1.4em; }
+  .quizPanel .qRow .who { flex: 1; }
+  .quizPanel .qRow .pts { font-weight: 900; }
+  .quizPanel .qRow .sub { font-size: 14px; opacity: .6; width: 3.5em; text-align: right; }
+
   /* shared scoreboard for the throwing games */
   .shotHud { display: flex; gap: 12px; justify-content: center; }
   .shotCard {
@@ -339,6 +424,26 @@
       <div class="ico">&#129380;</div>
       <div class="nm">Cup Pong</div>
       <div class="ds">Sink all ten cups. Bounce shots count.</div>
+    </div>
+    <div class="card" data-game="quiz">
+      <div class="ico">&#129504;</div>
+      <div class="nm">Quiz</div>
+      <div class="ds">General knowledge. Up to 4 phones, answer with A-D.</div>
+    </div>
+    <div class="card" data-game="lightcycles">
+      <div class="ico">&#127950;</div>
+      <div class="nm">Light Cycles</div>
+      <div class="ds">Up to 4 riders. Tilt to turn, last one riding wins.</div>
+    </div>
+    <div class="card" data-game="airhockey">
+      <div class="ico">&#127954;</div>
+      <div class="nm">Air Hockey</div>
+      <div class="ds">Tilt to slide your mallet. First to seven.</div>
+    </div>
+    <div class="card" data-game="baseball">
+      <div class="ico">&#9918;</div>
+      <div class="nm">Baseball</div>
+      <div class="ds">Swing as the pitch reaches the plate. Three innings.</div>
     </div>
     <div class="card" data-game="golf">
       <div class="ico">&#9971;</div>

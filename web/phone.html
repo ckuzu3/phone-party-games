@@ -148,6 +148,35 @@
     transform: scale(.98);
   }
 
+  /* ---------- quiz layout: four answer keys ---------- */
+  #quiz { flex: 1; display: none; flex-direction: column; padding: env(safe-area-inset-top) 0 0; }
+  #quizTop {
+    margin: 10px 12px 8px; padding: 10px 14px; border-radius: 14px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #quizBadge {
+    width: 32px; height: 32px; border-radius: 9px; flex: none;
+    display: grid; place-items: center; font-weight: 900; font-size: 13px; color: #06122c;
+    background: #7fe3ff;
+  }
+  #quizHint { font-size: 13px; color: #9fb0d8; line-height: 1.4; }
+  #answers {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    padding: 0 12px calc(12px + env(safe-area-inset-bottom));
+  }
+  .answer {
+    border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 46px; font-weight: 900; letter-spacing: 2px;
+    border: 2px solid; transition: transform .05s ease, filter .05s ease;
+  }
+  .answer.down { transform: scale(.96); filter: brightness(1.6); }
+  .answer.locked { opacity: .35; }
+  #ansA { background: rgba(127,227,255,.16); border-color: #7fe3ff; color: #cdf3ff; }
+  #ansB { background: rgba(255,209,102,.16); border-color: #ffd166; color: #ffeec2; }
+  #ansC { background: rgba(160,240,160,.16); border-color: #a0f0a0; color: #d7ffd7; }
+  #ansD { background: rgba(255,158,203,.16); border-color: #ff9ecb; color: #ffdcec; }
+
   #rotateNag {
     margin: 0 12px 6px; padding: 9px 12px; border-radius: 12px; font-size: 12px;
     background: rgba(255,209,102,.14); border: 1px solid rgba(255,209,102,.4);
@@ -220,6 +249,22 @@
   <div id="foot">
     <button class="mini" id="menuBtn2">Menu</button>
     <button class="mini" id="calBtn2">Centre the wheel</button>
+  </div>
+</div>
+
+<div id="quiz">
+  <div id="quizTop">
+    <div id="quizBadge">P?</div>
+    <div id="quizHint">Read the question on the big screen, then tap your answer.</div>
+  </div>
+  <div id="answers">
+    <div class="answer" id="ansA">A</div>
+    <div class="answer" id="ansB">B</div>
+    <div class="answer" id="ansC">C</div>
+    <div class="answer" id="ansD">D</div>
+  </div>
+  <div id="foot">
+    <button class="mini" id="menuBtn3">Menu</button>
   </div>
 </div>
 
@@ -310,6 +355,16 @@ function handle(m) {
     }
   } else if (m.t === "buzz") {
     buzz(m.ms || 30, m.flash);
+  } else if (m.t === "hud") {
+    // the quiz uses this to grey the keys out after you have answered
+    if (m.lock === true) {
+      ["ansA", "ansB", "ansC", "ansD"].forEach(function (id) {
+        $(id).classList.add("locked");
+      });
+    } else if (m.lock === false) {
+      clearLocks();
+    }
+    if (m.hint) { $("quizHint").textContent = m.hint; }
   }
 }
 
@@ -444,19 +499,37 @@ function bindButton() {
   bindHold($("btn"), "a");
   bindHold($("gasPedal"), "gas");
   bindHold($("brakePedal"), "brake");
+  bindHold($("ansA"), "q1");
+  bindHold($("ansB"), "q2");
+  bindHold($("ansC"), "q3");
+  bindHold($("ansD"), "q4");
 }
 
 function setLayout(next) {
   if (next === layout) { return; }
   layout = next;
   var driving = next === "pedals";
-  $("pad").style.display = driving ? "none" : "flex";
+  var quizzing = next === "quiz";
+  $("pad").style.display = (driving || quizzing) ? "none" : "flex";
   $("drive").style.display = driving ? "flex" : "none";
+  $("quiz").style.display = quizzing ? "flex" : "none";
   if (driving) {
     wheelRef = null;                       // centre on however it is held now
     $("steerBadge").textContent = pid ? "P" + pid : "P?";
     $("steerBadge").style.background = COLORS[(Math.max(1, pid) - 1) % COLORS.length];
   }
+  if (quizzing) {
+    $("quizBadge").textContent = pid ? "P" + pid : "P?";
+    $("quizBadge").style.background = COLORS[(Math.max(1, pid) - 1) % COLORS.length];
+    clearLocks();
+  }
+}
+
+/** Grey out the answer keys once this player has locked one in. */
+function clearLocks() {
+  ["ansA", "ansB", "ansC", "ansD"].forEach(function (id) {
+    $(id).classList.remove("locked");
+  });
 }
 
 // ---------------------------------------------------------------- start-up
@@ -509,7 +582,7 @@ async function start() {
   attachSensors();
   verifySensors();
   $("gate").style.display = "none";
-  if (layout !== "pedals") { $("pad").style.display = "flex"; }
+  if (layout === "default") { $("pad").style.display = "flex"; }
   connect();
   keepAwake();
 }
@@ -530,6 +603,11 @@ async function keepAwake() {
 $("go").addEventListener("click", start);
 
 $("menuBtn").addEventListener("click", function () {
+  send({ t: "menu" });
+  buzz(20);
+});
+
+$("menuBtn3").addEventListener("click", function () {
   send({ t: "menu" });
   buzz(20);
 });
