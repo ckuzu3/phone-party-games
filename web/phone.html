@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1020">
+<title>Controller</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #0b1020; color: #eaf0ff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+    overscroll-behavior: none;
+  }
+  body { display: flex; flex-direction: column; }
+
+  /* ---------- gate (first screen) ---------- */
+  #gate {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px; padding: 32px 26px; text-align: center;
+    background: radial-gradient(120% 90% at 50% 0%, #1b2b5c 0%, #0b1020 65%);
+  }
+  #gate h1 { margin: 0; font-size: 27px; letter-spacing: .5px; font-weight: 800; }
+  #gate p  { margin: 0; font-size: 15px; line-height: 1.55; color: #9fb0d8; max-width: 20em; }
+  #go {
+    margin-top: 6px; border: 0; border-radius: 100px; padding: 20px 44px;
+    font-size: 20px; font-weight: 800; letter-spacing: .6px; color: #06122c;
+    background: linear-gradient(180deg, #7fe3ff, #34a9e8);
+    box-shadow: 0 12px 30px rgba(52,169,232,.45); cursor: pointer;
+  }
+  #go:active { transform: translateY(2px); }
+  #gateErr { color: #ff9d9d; font-size: 14px; min-height: 1.2em; max-width: 22em; line-height: 1.5; }
+
+  /* ---------- controller ---------- */
+  #pad { flex: 1; display: none; flex-direction: column; padding: env(safe-area-inset-top) 0 0; }
+
+  #top {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px 10px;
+  }
+  #badge {
+    width: 42px; height: 42px; border-radius: 12px; flex: none;
+    display: grid; place-items: center; font-weight: 900; font-size: 19px; color: #06122c;
+    background: #7fe3ff; box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  }
+  #who { flex: 1; min-width: 0; }
+  #whoTitle { font-size: 15px; font-weight: 700; }
+  #whoSub { font-size: 12px; color: #8ea3d0; margin-top: 2px; }
+  #link { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8ea3d0; }
+  #dot { width: 9px; height: 9px; border-radius: 50%; background: #ff6b6b; }
+  #dot.on { background: #59e39b; box-shadow: 0 0 10px #59e39b; }
+
+  #sport {
+    margin: 2px 18px 0; padding: 14px 16px; border-radius: 16px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09);
+  }
+  #sportName { font-size: 18px; font-weight: 800; letter-spacing: .3px; }
+  #sportHint { font-size: 13px; color: #9fb0d8; margin-top: 5px; line-height: 1.5; }
+
+  /* swing energy meter */
+  #meterWrap {
+    margin: 14px 18px 0; height: 8px; border-radius: 99px;
+    background: rgba(255,255,255,.08); overflow: hidden;
+  }
+  #meter { height: 100%; width: 0%; border-radius: 99px;
+           background: linear-gradient(90deg, #59e39b, #ffd166, #ff6b6b); transition: width .05s linear; }
+
+  #btnArea { flex: 1; display: flex; padding: 16px 18px calc(18px + env(safe-area-inset-bottom)); }
+  #btn {
+    flex: 1; border-radius: 26px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(180deg, rgba(127,227,255,.20), rgba(52,169,232,.10));
+    border: 2px solid rgba(127,227,255,.45);
+    transition: transform .06s ease, background .06s ease;
+  }
+  #btn.down {
+    background: linear-gradient(180deg, rgba(127,227,255,.55), rgba(52,169,232,.35));
+    transform: scale(.985);
+  }
+  #btnLabel { font-size: 34px; font-weight: 900; letter-spacing: 1px; }
+  #btnSub { font-size: 13px; color: #b9caee; text-align: center; padding: 0 20px; line-height: 1.45; }
+
+  #foot {
+    display: flex; gap: 10px; padding: 0 18px calc(14px + env(safe-area-inset-bottom));
+  }
+  .mini {
+    flex: 1; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05);
+    color: #cdd9f4; border-radius: 12px; padding: 11px; font-size: 13px; font-weight: 600;
+  }
+  .mini:active { background: rgba(255,255,255,.12); }
+
+  /* ---------- driving layout: two pedals, phone held sideways ---------- */
+  #drive { flex: 1; display: none; flex-direction: column; padding: env(safe-area-inset-top) 0 0; }
+
+  #steerWrap {
+    margin: 8px 12px 6px; padding: 8px 12px; border-radius: 14px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #steerBadge {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    display: grid; place-items: center; font-weight: 900; font-size: 13px; color: #06122c;
+    background: #7fe3ff;
+  }
+  #steerTrack {
+    flex: 1; height: 10px; border-radius: 99px; position: relative;
+    background: rgba(255,255,255,.10); overflow: hidden;
+  }
+  #steerTrack::after {
+    content: ""; position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 2px; margin-left: -1px; background: rgba(255,255,255,.35);
+  }
+  #steerFill {
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 0%;
+    background: linear-gradient(90deg, #7fe3ff, #34a9e8); border-radius: 99px;
+  }
+  #steerHint { font-size: 11px; color: #8ea3d0; white-space: nowrap; }
+
+  #pedals { flex: 1; display: flex; gap: 10px; padding: 4px 12px calc(12px + env(safe-area-inset-bottom)); }
+  .pedal {
+    flex: 1; border-radius: 22px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    border: 2px solid; transition: transform .05s ease, background .05s ease;
+  }
+  .pedal .lab { font-size: 30px; font-weight: 900; letter-spacing: 1px; }
+  .pedal .sub { font-size: 12px; opacity: .75; }
+  #brakePedal {
+    background: linear-gradient(180deg, rgba(255,107,107,.20), rgba(200,50,50,.10));
+    border-color: rgba(255,107,107,.5); color: #ffd9d9;
+  }
+  #brakePedal.down {
+    background: linear-gradient(180deg, rgba(255,107,107,.6), rgba(200,50,50,.4));
+    transform: scale(.98);
+  }
+  #gasPedal {
+    background: linear-gradient(180deg, rgba(89,227,155,.20), rgba(30,160,100,.10));
+    border-color: rgba(89,227,155,.5); color: #d6ffe9;
+    flex: 1.25;
+  }
+  #gasPedal.down {
+    background: linear-gradient(180deg, rgba(89,227,155,.6), rgba(30,160,100,.4));
+    transform: scale(.98);
+  }
+
+  #rotateNag {
+    margin: 0 12px 6px; padding: 9px 12px; border-radius: 12px; font-size: 12px;
+    background: rgba(255,209,102,.14); border: 1px solid rgba(255,209,102,.4);
+    color: #ffe4a8; text-align: center; display: none;
+  }
+
+  #flash {
+    position: fixed; inset: 0; pointer-events: none; z-index: 40;
+    background: #7fe3ff; opacity: 0; transition: opacity .16s ease;
+  }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>Wii&#8209;Style Sports</h1>
+  <p>Hold your phone like a remote. Tap below to let this page read the motion sensors.</p>
+  <button id="go">TAP TO CONNECT</button>
+  <div id="gateErr"></div>
+</div>
+
+<div id="pad">
+  <div id="top">
+    <div id="badge">?</div>
+    <div id="who">
+      <div id="whoTitle">Connecting&hellip;</div>
+      <div id="whoSub">looking for the game screen</div>
+    </div>
+    <div id="link"><span id="dot"></span><span id="linkText">off</span></div>
+  </div>
+
+  <div id="sport">
+    <div id="sportName">Waiting for the game</div>
+    <div id="sportHint">Pick a sport on the big screen.</div>
+  </div>
+
+  <div id="meterWrap"><div id="meter"></div></div>
+
+  <div id="btnArea">
+    <div id="btn">
+      <div id="btnLabel">A</div>
+      <div id="btnSub">hold &amp; swing</div>
+    </div>
+  </div>
+
+  <div id="foot">
+    <button class="mini" id="menuBtn">Menu</button>
+    <button class="mini" id="calBtn">Re-centre</button>
+    <button class="mini" id="fsBtn">Fullscreen</button>
+  </div>
+</div>
+
+<div id="drive">
+  <div id="steerWrap">
+    <div id="steerBadge">P?</div>
+    <div id="steerTrack"><div id="steerFill"></div></div>
+    <div id="steerHint">tilt to steer</div>
+  </div>
+  <div id="rotateNag">Turn your phone sideways and hold it like a steering wheel</div>
+  <div id="pedals">
+    <div class="pedal" id="brakePedal">
+      <div class="lab">BRAKE</div>
+      <div class="sub">hold to slow / reverse</div>
+    </div>
+    <div class="pedal" id="gasPedal">
+      <div class="lab">GAS</div>
+      <div class="sub">hold to accelerate</div>
+    </div>
+  </div>
+  <div id="foot">
+    <button class="mini" id="menuBtn2">Menu</button>
+    <button class="mini" id="calBtn2">Centre the wheel</button>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<script>
+"use strict";
+
+var $ = function (id) { return document.getElementById(id); };
+
+var COLORS = ["#7fe3ff", "#ffd166", "#a0f0a0", "#ff9ecb", "#c3a6ff", "#ffb08a"];
+
+var ws = null;
+var connected = false;
+var pid = 0;
+var lastSend = 0;
+var SEND_MS = 1000 / 60;
+
+// latest sensor values
+var ag = [0, 0, 0];      // acceleration including gravity
+var rr = [0, 0, 0];      // rotation rate (deg/s)
+var ori = [0, 0, 0];     // alpha, beta, gamma
+var gravity = [0, 0, 9.81];
+var energy = 0;
+var layout = "default";
+var wheelRef = null;
+
+// ---------------------------------------------------------------- socket
+
+function connect() {
+  var url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws?role=phone";
+  ws = new WebSocket(url);
+
+  ws.onopen = function () {
+    connected = true;
+    $("dot").classList.add("on");
+    $("linkText").textContent = "live";
+    send({ t: "hello", name: "phone" });
+  };
+
+  ws.onclose = function () {
+    connected = false;
+    $("dot").classList.remove("on");
+    $("linkText").textContent = "lost";
+    $("whoTitle").textContent = "Reconnecting…";
+    setTimeout(connect, 900);
+  };
+
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+
+  ws.onmessage = function (ev) {
+    var m;
+    try { m = JSON.parse(ev.data); } catch (e) { return; }
+    handle(m);
+  };
+}
+
+function send(obj) {
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+function handle(m) {
+  if (m.t === "assigned") {
+    pid = m.pid;
+    var color = COLORS[(pid - 1) % COLORS.length];
+    $("badge").textContent = "P" + pid;
+    $("badge").style.background = color;
+    $("btn").style.borderColor = color;
+    $("whoTitle").textContent = "Player " + pid;
+    $("whoSub").textContent = "connected to the game screen";
+  } else if (m.t === "roster") {
+    if (m.screens === 0) {
+      $("whoSub").textContent = "no game screen open yet";
+    } else if (pid) {
+      $("whoSub").textContent = m.players.length + " controller"
+        + (m.players.length === 1 ? "" : "s") + " connected";
+    }
+  } else if (m.t === "mode") {
+    setLayout(m.layout || "default");
+    $("sportName").textContent = m.name || "";
+    $("sportHint").textContent = m.hint || "";
+    $("btnLabel").textContent = m.button || "A";
+    $("btnSub").textContent = m.buttonHint || "";
+    if (m.layout === "pedals") {
+      $("steerHint").textContent = m.hint || "tilt to steer";
+    }
+  } else if (m.t === "buzz") {
+    buzz(m.ms || 30, m.flash);
+  }
+}
+
+// ---------------------------------------------------------------- haptics
+
+function buzz(ms, flash) {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
+  if (flash !== false) {
+    var f = $("flash");
+    f.style.opacity = "0.30";
+    setTimeout(function () { f.style.opacity = "0"; }, 60);
+  }
+}
+
+// ---------------------------------------------------------------- sensors
+
+function round2(v) { return Math.round((v || 0) * 100) / 100; }
+
+function onMotion(e) {
+  var a = e.accelerationIncludingGravity;
+  if (a && a.x !== null) {
+    ag[0] = a.x || 0; ag[1] = a.y || 0; ag[2] = a.z || 0;
+  }
+  var r = e.rotationRate;
+  if (r) {
+    rr[0] = r.alpha || 0; rr[1] = r.beta || 0; rr[2] = r.gamma || 0;
+  }
+
+  // low-pass the gravity vector so we can show linear motion on the meter
+  var k = 0.88;
+  for (var i = 0; i < 3; i++) {
+    gravity[i] = gravity[i] * k + ag[i] * (1 - k);
+  }
+  var lx = ag[0] - gravity[0], ly = ag[1] - gravity[1], lz = ag[2] - gravity[2];
+  var mag = Math.sqrt(lx * lx + ly * ly + lz * lz);
+  energy = Math.max(energy * 0.9, Math.min(1, mag / 26));
+
+  pump();
+}
+
+function onOrient(e) {
+  ori[0] = e.alpha || 0;
+  ori[1] = e.beta || 0;
+  ori[2] = e.gamma || 0;
+}
+
+/** Wheel angle from gravity inside the phone's screen plane - see input.js. */
+function wheelAngle() {
+  var gx = gravity[0], gy = gravity[1];
+  if (Math.hypot(gx, gy) < 2.5) { return null; }   // lying too flat to tell
+  return Math.atan2(gx, -gy) * 180 / Math.PI;
+}
+
+function shortest(deg) {
+  var d = deg % 360;
+  if (d > 180) { d -= 360; }
+  if (d < -180) { d += 360; }
+  return d;
+}
+
+function updateSteerBar() {
+  var raw = wheelAngle();
+  $("rotateNag").style.display = raw === null ? "block" : "none";
+  if (raw === null) { return; }
+  if (wheelRef === null) { wheelRef = raw; }
+  var a = shortest(raw - wheelRef);
+  var pct = Math.max(-1, Math.min(1, a / 55)) * 50;
+  var fill = $("steerFill");
+  if (pct >= 0) {
+    fill.style.left = "50%";
+    fill.style.width = pct.toFixed(1) + "%";
+  } else {
+    fill.style.left = (50 + pct).toFixed(1) + "%";
+    fill.style.width = (-pct).toFixed(1) + "%";
+  }
+}
+
+function pump() {
+  var now = performance.now();
+  if (now - lastSend < SEND_MS) { return; }
+  lastSend = now;
+  if (layout === "pedals") { updateSteerBar(); }
+  else { $("meter").style.width = (energy * 100).toFixed(0) + "%"; }
+  send({
+    t: "m",
+    ag: [round2(ag[0]), round2(ag[1]), round2(ag[2])],
+    rr: [round2(rr[0]), round2(rr[1]), round2(rr[2])],
+    o:  [round2(ori[0]), round2(ori[1]), round2(ori[2])]
+  });
+}
+
+// ---------------------------------------------------------------- button
+
+/** Wires one element as a hold-to-press control sending the given key. */
+function bindHold(el, key) {
+  var down = false;
+
+  function press(ev) {
+    ev.preventDefault();
+    if (down) { return; }
+    down = true;
+    el.classList.add("down");
+    send({ t: "b", d: 1, k: key });
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  }
+  function release(ev) {
+    ev.preventDefault();
+    if (!down) { return; }
+    down = false;
+    el.classList.remove("down");
+    send({ t: "b", d: 0, k: key });
+  }
+
+  el.addEventListener("touchstart", press, { passive: false });
+  el.addEventListener("touchend", release, { passive: false });
+  el.addEventListener("touchcancel", release, { passive: false });
+  el.addEventListener("mousedown", press);
+  window.addEventListener("mouseup", release);
+  // a finger that slides off the pedal must let go of it too
+  el.addEventListener("touchmove", function (ev) {
+    var t = ev.touches[0];
+    if (!t) { return; }
+    var r = el.getBoundingClientRect();
+    if (t.clientX < r.left || t.clientX > r.right
+        || t.clientY < r.top || t.clientY > r.bottom) { release(ev); }
+  }, { passive: false });
+}
+
+function bindButton() {
+  bindHold($("btn"), "a");
+  bindHold($("gasPedal"), "gas");
+  bindHold($("brakePedal"), "brake");
+}
+
+function setLayout(next) {
+  if (next === layout) { return; }
+  layout = next;
+  var driving = next === "pedals";
+  $("pad").style.display = driving ? "none" : "flex";
+  $("drive").style.display = driving ? "flex" : "none";
+  if (driving) {
+    wheelRef = null;                       // centre on however it is held now
+    $("steerBadge").textContent = pid ? "P" + pid : "P?";
+    $("steerBadge").style.background = COLORS[(Math.max(1, pid) - 1) % COLORS.length];
+  }
+}
+
+// ---------------------------------------------------------------- start-up
+
+function needsPermission() {
+  return typeof DeviceMotionEvent !== "undefined"
+    && typeof DeviceMotionEvent.requestPermission === "function";
+}
+
+function attachSensors() {
+  window.addEventListener("devicemotion", onMotion);
+  window.addEventListener("deviceorientation", onOrient);
+}
+
+function verifySensors() {
+  // if nothing arrives within a second the phone has no usable sensors
+  setTimeout(function () {
+    if (ag[0] === 0 && ag[1] === 0 && ag[2] === 0) {
+      $("sportHint").textContent =
+        "No motion data yet. If this stays empty, your browser is blocking "
+        + "the sensors — try Safari or Chrome over the https:// address.";
+    }
+  }, 1500);
+}
+
+async function start() {
+  $("gateErr").textContent = "";
+  try {
+    if (needsPermission()) {
+      var res = await DeviceMotionEvent.requestPermission();
+      if (res !== "granted") {
+        $("gateErr").textContent = "Motion access was denied. Reload the page and tap allow.";
+        return;
+      }
+      if (typeof DeviceOrientationEvent !== "undefined"
+          && typeof DeviceOrientationEvent.requestPermission === "function") {
+        try { await DeviceOrientationEvent.requestPermission(); } catch (e) {}
+      }
+    } else if (!window.isSecureContext) {
+      $("gateErr").textContent =
+        "This page is not on https, so the browser hides the motion sensors. "
+        + "Open the https:// address shown in the server window.";
+      return;
+    }
+  } catch (err) {
+    $("gateErr").textContent = "Could not enable motion: " + err.message;
+    return;
+  }
+
+  attachSensors();
+  verifySensors();
+  $("gate").style.display = "none";
+  if (layout !== "pedals") { $("pad").style.display = "flex"; }
+  connect();
+  keepAwake();
+}
+
+async function keepAwake() {
+  try {
+    if ("wakeLock" in navigator) {
+      var lock = await navigator.wakeLock.request("screen");
+      document.addEventListener("visibilitychange", async function () {
+        if (document.visibilityState === "visible") {
+          try { lock = await navigator.wakeLock.request("screen"); } catch (e) {}
+        }
+      });
+    }
+  } catch (e) {}
+}
+
+$("go").addEventListener("click", start);
+
+$("menuBtn").addEventListener("click", function () {
+  send({ t: "menu" });
+  buzz(20);
+});
+
+$("menuBtn2").addEventListener("click", function () {
+  send({ t: "menu" });
+  buzz(20);
+});
+
+$("calBtn2").addEventListener("click", function () {
+  wheelRef = wheelAngle();
+  send({ t: "cal" });
+  buzz(20);
+});
+
+$("calBtn").addEventListener("click", function () {
+  send({ t: "cal" });
+  buzz(20);
+});
+
+$("fsBtn").addEventListener("click", function () {
+  var el = document.documentElement;
+  if (!document.fullscreenElement && el.requestFullscreen) {
+    el.requestFullscreen().catch(function () {});
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen().catch(function () {});
+  }
+});
+
+bindButton();
+
+// stop pinch-zoom and rubber-band scrolling from fighting the controller
+document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+document.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+
+// keepalive so mobile browsers do not idle the socket out
+setInterval(function () { send({ t: "p" }); }, 4000);
+</script>
+</body>
+</html>

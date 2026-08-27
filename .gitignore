@@ -1,0 +1,20 @@
+# The self-signed certificate and its PRIVATE KEY. Never commit these.
+# server.py regenerates them on first run, and reissues them automatically
+# whenever this machine's IP address changes.
+certs/
+
+# server output when run in the background
+server.log
+server.err
+server.pid
+
+# python
+__pycache__/
+*.pyc
+
+# editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
