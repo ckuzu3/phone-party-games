@@ -1,6 +1,6 @@
 /* Game screen: menu, the render loop, and routing phone input into whichever sport is running. */
 
-import { makeRenderer } from "./arena.js";
+import { makeRenderer, fitCamera } from "./arena.js";
 import { drawQR } from "./qr.js";
 import { Net } from "./net.js";
 import { Controllers, Controller } from "./input.js";
@@ -393,7 +393,13 @@ class App {
     const n = this.order.length;
     this.menuIndex = ((i % n) + n) % n;
     document.querySelectorAll(".card").forEach((card, k) => {
-      card.classList.toggle("sel", k === this.menuIndex);
+      const on = k === this.menuIndex;
+      card.classList.toggle("sel", on);
+      // with this many games the grid can run past the bottom of the window,
+      // so the highlighted one has to be brought into view
+      if (on && card.scrollIntoView) {
+        card.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     });
     sfx.move();
   }
@@ -444,8 +450,7 @@ class App {
     const cams = game.cameras && game.cameras.length ? game.cameras : [game.camera];
     const each = w / cams.length;
     for (const cam of cams) {
-      cam.aspect = each / h;
-      cam.updateProjectionMatrix();
+      fitCamera(cam, each / h);
     }
     const divider = document.getElementById("divider");
     if (divider) { divider.style.display = cams.length > 1 ? "block" : "none"; }

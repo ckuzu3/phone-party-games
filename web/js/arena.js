@@ -233,14 +233,38 @@ export function renderSplit(renderer, scene, cameras) {
     renderer.setScissor(x, 0, width, size.y);
     const cam = cameras[i];
     const aspect = width / size.y;
-    if (cam.aspect !== aspect) {
-      cam.aspect = aspect;
-      cam.updateProjectionMatrix();
-    }
+    // each half is much narrower than 16:9, so widen the view to suit
+    if (cam.aspect !== aspect) { fitCamera(cam, aspect); }
     renderer.render(scene, cam);
   }
   renderer.setScissorTest(false);
   renderer.setViewport(0, 0, size.x, size.y);
+}
+
+/**
+ * Point a camera at a viewport without cropping the sides.
+ *
+ * Every scene here is framed for a 16:9 view. A three.js camera keeps its
+ * *vertical* field of view fixed, so on anything narrower than that - a tall
+ * window, or either half of a split screen - the horizontal view shrinks and
+ * the edges of the board or court fall outside it. Widening the vertical FOV
+ * by the same ratio keeps the horizontal extent the scene was built for.
+ */
+export function fitCamera(cam, aspect, designAspect) {
+  const design = designAspect || 16 / 9;
+  if (cam.userData.baseFov === undefined) { cam.userData.baseFov = cam.fov; }
+  cam.aspect = aspect;
+  const base = cam.userData.baseFov;
+  if (aspect < design) {
+    const halfV = Math.tan((base * Math.PI / 180) / 2);
+    const want = 2 * Math.atan(halfV * design / aspect) * 180 / Math.PI;
+    // past about a hundred degrees the fisheye is worse than losing a sliver
+    // at the edges, so stop widening there
+    cam.fov = Math.min(want, 100);
+  } else {
+    cam.fov = base;
+  }
+  cam.updateProjectionMatrix();
 }
 
 export function lerp(a, b, t) { return a + (b - a) * t; }
