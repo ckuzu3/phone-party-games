@@ -28,7 +28,11 @@ const GENTLE_RELEASE = 3.5;    // ...and the level it must fall back below
 const HOOK = 0.38;             // lateral pull at full wrist turn, tuned so the
                                // hardest hook bends roughly 0.4 m by the pins
 
-const STATE = { AIM: "aim", WINDUP: "windup", ROLL: "roll", SETTLE: "settle", DONE: "done" };
+// BETWEEN is the pause after the pins have settled while the next ball is
+// being set up. Without it the settle check keeps firing _endRoll every frame
+// until the timer lands, scoring the same ball around ninety times.
+const STATE = { AIM: "aim", WINDUP: "windup", ROLL: "roll", SETTLE: "settle",
+                BETWEEN: "between", DONE: "done" };
 
 export class BowlingGame {
   constructor(ctx) {
@@ -241,6 +245,8 @@ export class BowlingGame {
     this.gutter = false;
     this.rolled = false;
     this.pinsBefore = 10;
+    this.nextRollAt = 0;
+    this.pendingRoll = null;
 
     this._rackPins(true);
     this._resetBall();
@@ -468,6 +474,12 @@ export class BowlingGame {
     if (this.state === STATE.ROLL) { this._rollPhysics(dt); }
     this._pinPhysics(dt);
     this._settleCheck();
+    if (this.nextRollAt && performance.now() > this.nextRollAt) {
+      this.nextRollAt = 0;
+      const p = this.pendingRoll;
+      this.pendingRoll = null;
+      if (p) { this._nextRoll(p.standing, p.tenth, p.first); }
+    }
     this._animate(dt, time);
     this._camera(dt);
   }
@@ -625,6 +637,8 @@ export class BowlingGame {
   }
 
   _endRoll() {
+    if (this.state !== STATE.SETTLE) { return; }
+    this.state = STATE.BETWEEN;
     const before = this.pinsBefore === undefined ? 10 : this.pinsBefore;
     const standing = this._standingCount();
     const knocked = before - standing;
@@ -649,7 +663,11 @@ export class BowlingGame {
     }
 
     this._syncHud();
-    setTimeout(() => this._nextRoll(standing, tenth, first), 1500);
+    // Deferred with a deadline checked in update(), like every other game
+    // here, rather than a setTimeout: timers get throttled when the tab is in
+    // the background, which would strand the game between frames.
+    this.nextRollAt = performance.now() + 1500;
+    this.pendingRoll = { standing, tenth, first };
   }
 
   _nextRoll(standing, tenth, first) {

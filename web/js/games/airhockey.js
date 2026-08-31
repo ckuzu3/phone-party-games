@@ -23,6 +23,7 @@ const GOAL_HALF = 0.19;       // half the width of the mouth
 const FRICTION = 0.16;        // air hockey is nearly frictionless
 const MAX_PUCK = 4.2;
 const WIN_SCORE = 7;
+const STALL_LIMIT = 4.0;    // seconds of a motionless puck before a face-off
 
 export class AirHockeyGame {
   constructor(ctx) {
@@ -175,6 +176,7 @@ export class AirHockeyGame {
     this.puckVel = new THREE.Vector2(
       (Math.random() - 0.5) * 0.4, towards * (0.55 + Math.random() * 0.25));
     this.serveAt = performance.now() + 700;
+    this.stall = 0;
   }
 
   // ------------------------------------------------------------ update
@@ -215,7 +217,7 @@ export class AirHockeyGame {
     }
 
     // --- puck ------------------------------------------------------------
-    if (live) { this._puckStep(dt); }
+    if (live) { this._puckStep(dt); this._stallCheck(dt); }
     this.puck.position.set(this.puckPos.x, 0.012, this.puckPos.y);
 
     if (this.over && this.restartAt && performance.now() > this.restartAt) {
@@ -286,6 +288,21 @@ export class AirHockeyGame {
         this.ctx.net.buzz(0, 20, false);
       }
     }
+  }
+
+  /*
+   * The puck is nearly frictionless but not perfectly so. Left in a spot
+   * neither mallet is chasing - a back corner, or the far side of an idle
+   * opponent - it coasts to a dead stop and play simply has nowhere to go.
+   * A face-off after a few still seconds gets the game moving again.
+   */
+  _stallCheck(dt) {
+    if (this.over) { return; }
+    if (this.puckVel.length() > 0.15) { this.stall = 0; return; }
+    this.stall += dt;
+    if (this.stall < STALL_LIMIT) { return; }
+    this.ctx.ui.toast("FACE-OFF", "the puck had stopped", 1200);
+    this._centre(Math.random() < 0.5 ? -1 : 1);   // also clears the stall timer
   }
 
   _tap() {
