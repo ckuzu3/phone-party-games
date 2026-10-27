@@ -1,4 +1,4 @@
-# Wii-Style Sports — your phone is the controller
+# Phone Party Games — your phone is the controller
 
 Nineteen games that run in a browser on your PC, with your phone acting as the
 controller over your home WiFi: tennis, bowling, boxing, racing, basketball,
@@ -9,8 +9,6 @@ knowledge quiz.
 No installation, no accounts, nothing leaves your network. The server is a
 single Python file using only the standard library, and the game is plain
 JavaScript with a copy of three.js included.
-
----
 
 ## Running it
 
@@ -37,8 +35,6 @@ JavaScript with a copy of three.js included.
 
 Press `Ctrl+C` in the server window to stop.
 
----
-
 ## Why the certificate warning?
 
 Phone browsers refuse to hand out accelerometer and gyroscope data over a
@@ -55,9 +51,9 @@ The PC game screen has no such requirement, so it is served over plain HTTP
 with no warning at all.
 
 The certificate is generated on first run into `certs/` and is rebuilt
-automatically if your PC's IP address changes.
-
----
+automatically if your PC's IP address changes. That folder holds a private key,
+so it is not in version control; delete it any time and the server makes a new
+one.
 
 ## The controls
 
@@ -238,8 +234,6 @@ and the four answers appear on the big screen; your phone shows just A, B, C
 and D. Everyone answers at once and the quickest correct answer scores most, so
 there is a reason to commit rather than wait and see.
 
----
-
 ## No phone? Keyboard controls
 
 The game screen is fully playable without a phone, which is handy for testing:
@@ -256,8 +250,6 @@ The game screen is fully playable without a phone, which is handy for testing:
 | `Esc` | Back to the menu |
 | `K` | Seat the keyboard as player 2 (or unseat it) |
 
----
-
 ## Troubleshooting
 
 **The phone cannot reach the address at all.**
@@ -266,7 +258,7 @@ Windows asks whether to allow it, and it is easy to dismiss. To add the rule
 manually, open PowerShell **as Administrator** and run:
 
 ```powershell
-New-NetFirewallRule -DisplayName "Wii-Style Sports" -Direction Inbound -Protocol TCP -LocalPort 8080,8443 -Action Allow -Profile Private
+New-NetFirewallRule -DisplayName "Phone Party Games" -Direction Inbound -Protocol TCP -LocalPort 8080,8443 -Action Allow -Profile Private
 ```
 
 Also check that both devices really are on the same network — phones sometimes
@@ -299,8 +291,6 @@ not the throw — see the previous item.
 **The IP address changed.**
 Just restart the server. It detects the new address and reissues the
 certificate automatically. Your phone will show the warning once more.
-
----
 
 ## Two players
 
@@ -345,8 +335,6 @@ it.
 Extra phones beyond the second connect fine and are listed, but the sports here
 are one-against-one, so they do not control anything.
 
----
-
 ## How it is put together
 
 ```
@@ -368,16 +356,9 @@ The phone streams accelerometer, gyroscope and orientation at about 60 Hz. The
 server does no game logic at all — it only relays messages between phones and
 screens, so all the physics runs on the PC where the frame rate is.
 
-`certs/` is generated on first run and can be deleted safely.
-
----
-
 ## Credits
 
 3D rendering by [three.js](https://threejs.org) (MIT licence), vendored at
 `web/lib/three.module.js` so the game runs with no network access at all.
 Everything else — the server, the games, the physics, the sound, the QR
 encoder — is written from scratch here and depends on nothing else.
-
-`certs/` is generated on first run and is deliberately not in version control:
-it holds a private key. Delete it any time and the server will make a new one.

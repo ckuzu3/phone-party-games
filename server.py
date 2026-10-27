@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WiiSportsPhone - local game server.
+Phone Party Games - local game server.
 
 Serves the game screen (for your PC) and the controller page (for your phone)
 over HTTPS on your LAN, and relays phone motion data to the screen over a
@@ -125,7 +125,7 @@ def ensure_cert(ips):
     cmd = [
         openssl, "req", "-x509", "-newkey", "rsa:2048", "-nodes",
         "-keyout", KEY, "-out", CERT,
-        "-days", "820", "-subj", "/CN=WiiSportsPhone",
+        "-days", "820", "-subj", "/CN=PhonePartyGames",
         "-addext", "subjectAltName=" + san,
         "-addext", "basicConstraints=CA:FALSE",
     ]
@@ -284,7 +284,7 @@ HUB = Hub()
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
-    server_version = "WiiSportsPhone"
+    server_version = "PhonePartyGames"
 
     def setup(self):
         BaseHTTPRequestHandler.setup(self)
@@ -471,7 +471,7 @@ def banner(ip):
     line = "=" * 64
     print("")
     print(line)
-    print("  WII-STYLE SPORTS  -  your phone is the controller")
+    print("  PHONE PARTY GAMES  -  your phone is the controller")
     print(line)
     print("")
     print("  1. On THIS PC, open the game screen:")
